@@ -3,422 +3,519 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LAN Chat</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
+<title>Chat</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-  :root {
-    --bg: #0d0f14;
-    --surface: #141720;
-    --surface2: #1c2030;
-    --border: #2a2f45;
-    --accent: #00ff88;
-    --accent2: #0088ff;
-    --text: #e2e8f0;
-    --muted: #64748b;
-    --danger: #ff4466;
-  }
+:root{
+  --bg:#08090c;
+  --s1:#0f1117;
+  --s2:#161920;
+  --s3:#1e2230;
+  --border:#252a3a;
+  --border2:#2e3448;
+  --accent:#c8ff00;
+  --accent2:#00d4ff;
+  --danger:#ff3b5c;
+  --warn:#ffb800;
+  --gold:#ffd700;
+  --text:#e8ecf4;
+  --muted:#5a6480;
+  --muted2:#3d4460;
+}
 
-  body {
-    font-family: 'JetBrains Mono', monospace;
-    background: var(--bg);
-    color: var(--text);
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;cursor:default}
 
-  /* === JOIN SCREEN === */
-  #join-screen {
-    position: fixed; inset: 0;
-    background: var(--bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    flex-direction: column;
-    gap: 0;
-  }
+/* ── NOISE OVERLAY ── */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.4}
 
-  .join-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 48px 56px;
-    width: min(480px, 90vw);
-    position: relative;
-    overflow: hidden;
-  }
+/* ══════════════════════════════════════
+   JOIN SCREEN
+══════════════════════════════════════ */
+#join-screen{
+  position:fixed;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg);
+  z-index:100;
+  flex-direction:column;
+}
 
-  .join-box::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-  }
+.join-wrap{
+  width:min(460px,90vw);
+  position:relative;
+}
 
-  .join-box::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse at top left, rgba(0,255,136,0.04) 0%, transparent 60%);
-    pointer-events: none;
-  }
+.join-glow{
+  position:absolute;
+  width:300px;height:300px;
+  background:radial-gradient(circle,rgba(200,255,0,0.08) 0%,transparent 70%);
+  top:-80px;left:-60px;
+  pointer-events:none;
+  animation:glowPulse 4s ease-in-out infinite;
+}
 
-  .join-logo {
-    font-size: 11px;
-    letter-spacing: 0.3em;
-    color: var(--accent);
-    text-transform: uppercase;
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+@keyframes glowPulse{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.2);opacity:1}}
 
-  .join-logo::before {
-    content: '●';
-    animation: blink 1s step-end infinite;
-  }
+.join-card{
+  background:var(--s1);
+  border:1px solid var(--border);
+  padding:52px 48px;
+  position:relative;
+  overflow:hidden;
+  animation:slideUp .6s cubic-bezier(.16,1,.3,1);
+}
 
-  @keyframes blink { 50% { opacity: 0; } }
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
 
-  .join-title {
-    font-size: 32px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 8px;
-    letter-spacing: -0.02em;
-  }
+.join-card::after{
+  content:'';position:absolute;
+  top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+}
 
-  .join-sub {
-    font-size: 12px;
-    color: var(--muted);
-    margin-bottom: 40px;
-    font-family: 'Space Grotesk', sans-serif;
-  }
+.join-tag{
+  font-family:'DM Mono',monospace;
+  font-size:10px;letter-spacing:.25em;
+  color:var(--accent);text-transform:uppercase;
+  margin-bottom:20px;
+  display:flex;align-items:center;gap:8px;
+}
+.join-tag span{width:20px;height:1px;background:var(--accent);display:inline-block}
 
-  .join-label {
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-bottom: 10px;
-  }
+.join-title{
+  font-size:42px;font-weight:800;
+  letter-spacing:-.03em;
+  line-height:1;
+  margin-bottom:8px;
+}
+.join-title em{font-style:normal;color:var(--accent)}
 
-  .join-input {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 16px;
-    padding: 14px 18px;
-    outline: none;
-    transition: border-color 0.2s;
-    caret-color: var(--accent);
-  }
+.join-sub{font-size:13px;color:var(--muted);margin-bottom:40px;font-family:'DM Mono',monospace}
 
-  .join-input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(0,255,136,0.08);
-  }
+.field-label{
+  font-family:'DM Mono',monospace;
+  font-size:10px;letter-spacing:.15em;color:var(--muted);
+  text-transform:uppercase;margin-bottom:10px;
+}
 
-  .join-btn {
-    width: 100%;
-    margin-top: 16px;
-    background: var(--accent);
-    color: #000;
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700;
-    font-size: 13px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 15px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
+.join-input{
+  width:100%;background:var(--bg);
+  border:1px solid var(--border2);color:var(--text);
+  font-family:'Syne',sans-serif;font-size:16px;font-weight:600;
+  padding:14px 18px;outline:none;
+  transition:border-color .2s,box-shadow .2s;
+  caret-color:var(--accent);
+}
+.join-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,255,0,.07)}
+.join-input::placeholder{color:var(--muted2);font-weight:400}
 
-  .join-btn:hover {
-    background: #00ffaa;
-    transform: translateY(-1px);
-  }
+.join-btn{
+  width:100%;margin-top:14px;
+  background:var(--accent);color:#000;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:14px;
+  letter-spacing:.08em;text-transform:uppercase;
+  padding:16px;border:none;cursor:pointer;
+  transition:all .15s;position:relative;overflow:hidden;
+}
+.join-btn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);
+  transform:translateX(-100%);transition:transform .4s;
+}
+.join-btn:hover::before{transform:translateX(100%)}
+.join-btn:hover{background:#d9ff1a;transform:translateY(-1px)}
+.join-btn:active{transform:translateY(0)}
 
-  .join-btn:active { transform: translateY(0); }
+/* Admin password slide-up */
+#admin-pass-wrap{
+  overflow:hidden;
+  max-height:0;
+  transition:max-height .5s cubic-bezier(.16,1,.3,1), opacity .4s;
+  opacity:0;
+  margin-top:0;
+}
+#admin-pass-wrap.visible{max-height:120px;opacity:1;margin-top:14px}
 
-  /* === MAIN LAYOUT === */
-  #app {
-    display: none;
-    height: 100vh;
-    flex-direction: column;
-  }
+.admin-hint{
+  font-family:'DM Mono',monospace;font-size:10px;
+  color:var(--gold);letter-spacing:.1em;
+  margin-bottom:8px;
+  display:flex;align-items:center;gap:6px;
+}
+.admin-hint::before{content:'👑'}
 
-  #app.visible { display: flex; }
+.admin-input{
+  width:100%;background:rgba(255,215,0,.05);
+  border:1px solid rgba(255,215,0,.25);color:var(--gold);
+  font-family:'DM Mono',monospace;font-size:15px;
+  padding:12px 16px;outline:none;
+  caret-color:var(--gold);
+  transition:border-color .2s,box-shadow .2s;
+}
+.admin-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(255,215,0,.08)}
+.admin-input::placeholder{color:rgba(255,215,0,.3)}
 
-  /* Header */
-  .header {
-    display: flex;
-    align-items: center;
-    padding: 14px 20px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    gap: 16px;
-    flex-shrink: 0;
-  }
+/* ══════════════════════════════════════
+   BANNED / KICKED screens
+══════════════════════════════════════ */
+.overlay-screen{
+  position:fixed;inset:0;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  z-index:200;
+  flex-direction:column;
+  gap:16px;
+  display:none;
+}
+.overlay-screen.show{display:flex}
+.overlay-icon{font-size:64px;animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.overlay-title{font-size:28px;font-weight:800}
+.overlay-sub{font-size:13px;color:var(--muted);font-family:'DM Mono',monospace;text-align:center}
 
-  .header-dot {
-    width: 8px; height: 8px;
-    background: var(--accent);
-    border-radius: 50%;
-    animation: pulse 2s ease-in-out infinite;
-    flex-shrink: 0;
-  }
+/* ══════════════════════════════════════
+   APP LAYOUT
+══════════════════════════════════════ */
+#app{display:none;height:100vh;flex-direction:column}
+#app.visible{display:flex}
 
-  @keyframes pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(0,255,136,0.4); }
-    50% { box-shadow: 0 0 0 6px rgba(0,255,136,0); }
-  }
+/* Header */
+.hdr{
+  display:flex;align-items:center;
+  padding:0 24px;height:56px;
+  background:var(--s1);
+  border-bottom:1px solid var(--border);
+  gap:16px;flex-shrink:0;
+  position:relative;
+}
+.hdr-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--accent);flex-shrink:0;
+  box-shadow:0 0 8px var(--accent);
+  animation:hdrPulse 2.5s ease-in-out infinite;
+}
+@keyframes hdrPulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hdr-name{font-size:15px;font-weight:800;letter-spacing:.03em}
+.hdr-sep{width:1px;height:20px;background:var(--border2)}
+.hdr-count{font-size:12px;color:var(--muted);font-family:'DM Mono',monospace}
+.hdr-count b{color:var(--accent2)}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.admin-badge{
+  font-family:'DM Mono',monospace;font-size:10px;
+  color:var(--gold);border:1px solid rgba(255,215,0,.3);
+  padding:3px 10px;letter-spacing:.1em;
+  background:rgba(255,215,0,.05);
+}
+.hdr-settings-btn{
+  background:none;border:1px solid var(--border2);
+  color:var(--muted);cursor:pointer;
+  padding:6px 12px;font-size:11px;font-family:'DM Mono',monospace;
+  letter-spacing:.08em;transition:all .2s;
+}
+.hdr-settings-btn:hover{border-color:var(--gold);color:var(--gold)}
 
-  .header-title {
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-  }
+/* Main */
+.main{display:flex;flex:1;overflow:hidden}
 
-  .header-sub {
-    font-size: 11px;
-    color: var(--muted);
-    margin-left: auto;
-  }
+/* Sidebar */
+.sidebar{
+  width:220px;
+  background:var(--s1);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  flex-shrink:0;
+}
+.sb-hdr{
+  padding:16px 20px;
+  font-family:'DM Mono',monospace;font-size:9px;
+  letter-spacing:.2em;color:var(--muted);text-transform:uppercase;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+#user-list{flex:1;overflow-y:auto;padding:8px}
+.user-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;border-radius:2px;
+  font-size:13px;font-weight:600;
+  animation:userIn .3s ease;
+  position:relative;
+}
+@keyframes userIn{from{opacity:0;transform:translateX(-10px)}}
+.user-item:hover{background:var(--s2)}
+.user-bullet{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.user-crown{font-size:10px;margin-left:auto}
 
-  #online-count {
-    color: var(--accent);
-    font-weight: 700;
-  }
+/* Chat */
+.chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
 
-  /* Main area */
-  .main {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-  }
+#messages{
+  flex:1;overflow-y:auto;
+  padding:20px 24px;
+  display:flex;flex-direction:column;gap:2px;
+  scroll-behavior:smooth;
+}
+#messages::-webkit-scrollbar{width:5px}
+#messages::-webkit-scrollbar-track{background:transparent}
+#messages::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 
-  /* Sidebar */
-  .sidebar {
-    width: 200px;
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-  }
+/* Message row */
+.msg{
+  display:grid;
+  grid-template-columns:44px 140px 1fr auto;
+  align-items:start;
+  padding:5px 8px;
+  border-radius:2px;
+  transition:background .15s;
+  animation:msgIn .2s ease;
+  position:relative;
+  gap:0 4px;
+}
+@keyframes msgIn{from{opacity:0;transform:translateY(5px)}}
+.msg:hover{background:var(--s2)}
+.msg:hover .msg-del{opacity:1}
 
-  .sidebar-title {
-    padding: 16px;
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    color: var(--muted);
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--border);
-  }
+.msg-time{
+  font-family:'DM Mono',monospace;font-size:10px;
+  color:var(--muted2);padding-top:3px;
+  text-align:right;
+}
+.msg-name{
+  font-size:12px;font-weight:700;
+  padding-top:2px;padding-left:10px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.msg-name.admin-name::after{content:' 👑';font-size:10px}
+.msg-text{
+  font-family:'DM Mono',monospace;font-size:13px;
+  line-height:1.65;word-break:break-word;
+  padding-left:12px;color:rgba(232,236,244,.9);
+}
+.msg-del{
+  opacity:0;background:none;border:none;
+  color:var(--danger);cursor:pointer;font-size:14px;
+  padding:2px 6px;transition:opacity .15s;
+  align-self:center;
+}
 
-  #user-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 8px;
-  }
+.system-msg{
+  text-align:center;font-size:11px;
+  color:var(--muted2);padding:10px;
+  font-family:'DM Mono',monospace;
+  letter-spacing:.05em;
+}
+.system-msg span{
+  background:var(--s2);
+  border:1px solid var(--border);
+  padding:3px 12px;
+}
 
-  .user-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
-    font-size: 12px;
-    border-radius: 4px;
-    animation: fadeIn 0.3s ease;
-  }
+/* Typing */
+#typing-area{
+  height:22px;padding:0 24px;
+  font-size:11px;color:var(--muted);
+  font-family:'DM Mono',monospace;
+  flex-shrink:0;display:flex;align-items:center;gap:6px;
+}
+.typing-dots span{
+  display:inline-block;width:4px;height:4px;
+  border-radius:50%;background:var(--muted);
+  animation:dotBounce .8s ease infinite;
+}
+.typing-dots span:nth-child(2){animation-delay:.15s}
+.typing-dots span:nth-child(3){animation-delay:.3s}
+@keyframes dotBounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-4px)}}
 
-  @keyframes fadeIn { from { opacity: 0; transform: translateX(-8px); } }
+/* Input */
+.input-area{
+  padding:16px 24px;
+  background:var(--s1);
+  border-top:1px solid var(--border);
+  display:flex;gap:10px;flex-shrink:0;
+}
+#msg-input{
+  flex:1;background:var(--bg);
+  border:1px solid var(--border2);color:var(--text);
+  font-family:'DM Mono',monospace;font-size:13px;
+  padding:13px 18px;outline:none;
+  transition:border-color .2s,box-shadow .2s;
+  caret-color:var(--accent);
+}
+#msg-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,255,0,.05)}
+#msg-input::placeholder{color:var(--muted2)}
 
-  .user-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
+#send-btn{
+  background:var(--accent);color:#000;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:12px;
+  letter-spacing:.1em;text-transform:uppercase;
+  padding:13px 24px;border:none;cursor:pointer;
+  transition:all .15s;flex-shrink:0;
+}
+#send-btn:hover{background:#d9ff1a;transform:translateY(-1px)}
+#send-btn:active{transform:translateY(0)}
 
-  /* Messages */
-  .chat-area {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
+/* ══════════════════════════════════════
+   ADMIN PANEL
+══════════════════════════════════════ */
+#admin-panel{
+  position:fixed;inset:0;
+  background:rgba(8,9,12,.85);
+  backdrop-filter:blur(8px);
+  z-index:50;
+  display:none;
+  align-items:center;
+  justify-content:center;
+}
+#admin-panel.show{display:flex}
 
-  #messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    scroll-behavior: smooth;
-  }
+.ap-card{
+  background:var(--s1);
+  border:1px solid rgba(255,215,0,.2);
+  width:min(560px,92vw);
+  max-height:85vh;
+  overflow-y:auto;
+  position:relative;
+  animation:slideUp .4s cubic-bezier(.16,1,.3,1);
+}
+.ap-card::before{
+  content:'';position:absolute;
+  top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.ap-hdr{
+  padding:24px 28px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);
+}
+.ap-title{font-size:18px;font-weight:800;color:var(--gold)}
+.ap-close{
+  background:none;border:1px solid var(--border2);
+  color:var(--muted);cursor:pointer;
+  width:32px;height:32px;font-size:16px;
+  transition:all .2s;
+}
+.ap-close:hover{border-color:var(--danger);color:var(--danger)}
 
-  #messages::-webkit-scrollbar { width: 6px; }
-  #messages::-webkit-scrollbar-track { background: transparent; }
-  #messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.ap-section{padding:20px 28px;border-bottom:1px solid var(--border)}
+.ap-section:last-child{border-bottom:none}
+.ap-section-title{
+  font-family:'DM Mono',monospace;font-size:9px;
+  letter-spacing:.2em;color:var(--muted);text-transform:uppercase;
+  margin-bottom:14px;
+}
 
-  .msg {
-    display: flex;
-    gap: 12px;
-    padding: 6px 10px;
-    border-radius: 4px;
-    animation: msgIn 0.2s ease;
-    align-items: flex-start;
-  }
+.ap-row{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.ap-input{
+  background:var(--bg);border:1px solid var(--border2);
+  color:var(--text);font-family:'DM Mono',monospace;font-size:12px;
+  padding:9px 12px;outline:none;flex:1;min-width:100px;
+  caret-color:var(--accent);transition:border-color .2s;
+}
+.ap-input:focus{border-color:var(--accent2)}
+.ap-input::placeholder{color:var(--muted2)}
 
-  @keyframes msgIn {
-    from { opacity: 0; transform: translateY(6px); }
-  }
+.ap-btn{
+  font-family:'Syne',sans-serif;font-weight:700;font-size:11px;
+  letter-spacing:.06em;text-transform:uppercase;
+  padding:9px 16px;border:none;cursor:pointer;
+  transition:all .15s;white-space:nowrap;flex-shrink:0;
+}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:#ff5570}
+.btn-warn{background:var(--warn);color:#000}
+.btn-warn:hover{background:#ffc233}
+.btn-ok{background:var(--accent);color:#000}
+.btn-ok:hover{background:#d9ff1a}
+.btn-muted{background:var(--s3);color:var(--text);border:1px solid var(--border2)}
+.btn-muted:hover{border-color:var(--muted)}
 
-  .msg:hover { background: rgba(255,255,255,0.02); }
+.ap-notice{
+  font-family:'DM Mono',monospace;font-size:11px;
+  padding:8px 12px;margin-top:8px;
+  background:rgba(0,212,255,.07);
+  border:1px solid rgba(0,212,255,.2);
+  color:var(--accent2);
+  animation:fadeIn .3s;
+}
+@keyframes fadeIn{from{opacity:0}}
 
-  .msg-time {
-    font-size: 10px;
-    color: var(--muted);
-    margin-top: 3px;
-    flex-shrink: 0;
-    width: 40px;
-  }
+/* Online users in panel */
+.ap-user-row{
+  display:flex;align-items:center;gap:10px;
+  padding:6px 0;border-bottom:1px solid var(--border);
+}
+.ap-user-row:last-child{border-bottom:none}
+.ap-user-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.ap-user-name{font-size:13px;font-weight:600;flex:1}
 
-  .msg-name {
-    font-size: 12px;
-    font-weight: 700;
-    flex-shrink: 0;
-    width: 120px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    margin-top: 2px;
-  }
+/* Scrollbar */
+.ap-card::-webkit-scrollbar{width:5px}
+.ap-card::-webkit-scrollbar-track{background:transparent}
+.ap-card::-webkit-scrollbar-thumb{background:var(--border2)}
 
-  .msg-text {
-    font-size: 13px;
-    line-height: 1.6;
-    word-break: break-word;
-    font-family: 'Space Grotesk', sans-serif;
-    flex: 1;
-  }
-
-  .msg-self .msg-name::after {
-    content: ' (vous)';
-    font-weight: 400;
-    color: var(--muted);
-    font-size: 10px;
-  }
-
-  .system-msg {
-    text-align: center;
-    font-size: 11px;
-    color: var(--muted);
-    padding: 8px;
-    font-style: italic;
-  }
-
-  /* Typing indicator */
-  #typing-area {
-    height: 24px;
-    padding: 0 20px;
-    font-size: 11px;
-    color: var(--muted);
-    font-style: italic;
-    flex-shrink: 0;
-  }
-
-  /* Input */
-  .input-area {
-    padding: 16px 20px;
-    background: var(--surface);
-    border-top: 1px solid var(--border);
-    display: flex;
-    gap: 10px;
-    flex-shrink: 0;
-  }
-
-  #msg-input {
-    flex: 1;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    padding: 12px 16px;
-    outline: none;
-    transition: border-color 0.2s;
-    caret-color: var(--accent);
-  }
-
-  #msg-input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(0,255,136,0.06);
-  }
-
-  #send-btn {
-    background: var(--accent);
-    color: #000;
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700;
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    padding: 12px 22px;
-    border: none;
-    cursor: pointer;
-    text-transform: uppercase;
-    transition: all 0.15s;
-  }
-
-  #send-btn:hover { background: #00ffaa; }
-
-  /* Scrollbar for sidebar */
-  #user-list::-webkit-scrollbar { width: 4px; }
-  #user-list::-webkit-scrollbar-track { background: transparent; }
-  #user-list::-webkit-scrollbar-thumb { background: var(--border); }
-
-  /* Responsive */
-  @media (max-width: 600px) {
-    .sidebar { display: none; }
-    .join-box { padding: 32px 24px; }
-  }
+@media(max-width:600px){
+  .sidebar{display:none}
+  .msg{grid-template-columns:36px 100px 1fr auto}
+  .join-card{padding:36px 24px}
+}
 </style>
 </head>
 <body>
 
-<!-- JOIN SCREEN -->
+<!-- BANNED -->
+<div id="banned-screen" class="overlay-screen">
+  <div class="overlay-icon">🔨</div>
+  <div class="overlay-title" style="color:var(--danger)">Banni</div>
+  <div class="overlay-sub" id="banned-reason"></div>
+  <div class="overlay-sub" id="banned-until"></div>
+</div>
+
+<!-- KICKED -->
+<div id="kicked-screen" class="overlay-screen">
+  <div class="overlay-icon">⚡</div>
+  <div class="overlay-title" style="color:var(--warn)">Expulsé</div>
+  <div class="overlay-sub" id="kicked-reason"></div>
+  <div class="overlay-sub" style="margin-top:8px;color:var(--muted)">Recharge la page pour revenir</div>
+</div>
+
+<!-- JOIN -->
 <div id="join-screen">
-  <div class="join-box">
-    <div class="join-logo">LAN Chat</div>
-    <h1 class="join-title">Rejoindre</h1>
-    <p class="join-sub">Messagerie locale — réseau privé uniquement</p>
-    <div class="join-label">Ton pseudo</div>
-    <input class="join-input" id="name-input" type="text" placeholder="ex: Jean, Alice…" maxlength="20" autofocus>
-    <button class="join-btn" onclick="join()">Entrer dans le chat →</button>
+  <div class="join-wrap">
+    <div class="join-glow"></div>
+    <div class="join-card">
+      <div class="join-tag"><span></span>Messagerie privée<span></span></div>
+      <h1 class="join-title">Entre dans<br>le <em>chat</em></h1>
+      <p class="join-sub">// réseau privé · temps réel</p>
+      <div class="field-label">Ton pseudo</div>
+      <input class="join-input" id="name-input" type="text" placeholder="ex: Alex, Marie…" maxlength="20" autocomplete="off">
+      <div id="admin-pass-wrap">
+        <div class="admin-hint">Accès administrateur détecté</div>
+        <input class="admin-input" id="admin-pass-input" type="password" placeholder="Mot de passe admin…" autocomplete="off">
+      </div>
+      <button class="join-btn" onclick="join()">Rejoindre →</button>
+    </div>
   </div>
 </div>
 
 <!-- APP -->
 <div id="app">
-  <div class="header">
-    <div class="header-dot"></div>
-    <span class="header-title">LAN Chat</span>
-    <span class="header-sub"><span id="online-count">0</span> en ligne</span>
+  <div class="hdr">
+    <div class="hdr-dot"></div>
+    <span class="hdr-name">Chat</span>
+    <div class="hdr-sep"></div>
+    <span class="hdr-count"><b id="online-count">0</b> en ligne</span>
+    <div class="hdr-right">
+      <div id="admin-badge" class="admin-badge" style="display:none">👑 ADMIN</div>
+      <button id="admin-panel-btn" class="hdr-settings-btn" style="display:none" onclick="toggleAdminPanel()">⚙ Panneau admin</button>
+    </div>
   </div>
 
   <div class="main">
     <div class="sidebar">
-      <div class="sidebar-title">Connectés</div>
+      <div class="sb-hdr">
+        <span>Connectés</span>
+        <span id="sb-count">0</span>
+      </div>
       <div id="user-list"></div>
     </div>
 
@@ -426,144 +523,289 @@
       <div id="messages"></div>
       <div id="typing-area"></div>
       <div class="input-area">
-        <input id="msg-input" type="text" placeholder="Tape ton message…" maxlength="500">
+        <input id="msg-input" type="text" placeholder="Écris ton message…" maxlength="500" autocomplete="off">
         <button id="send-btn" onclick="sendMessage()">Envoyer</button>
       </div>
     </div>
   </div>
 </div>
 
-<script>
-  let ws = null;
-  let myName = '';
-  let myColor = '';
-  let typingTimeout = null;
+<!-- ADMIN PANEL -->
+<div id="admin-panel">
+  <div class="ap-card">
+    <div class="ap-hdr">
+      <div class="ap-title">👑 Panneau Admin</div>
+      <button class="ap-close" onclick="toggleAdminPanel()">✕</button>
+    </div>
 
-  // Enter key handlers
-  document.getElementById('name-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') join();
-  });
+    <!-- Online users -->
+    <div class="ap-section">
+      <div class="ap-section-title">Utilisateurs en ligne</div>
+      <div id="ap-user-list"></div>
+    </div>
 
-  function join() {
-    const name = document.getElementById('name-input').value.trim();
-    if (!name) return;
-
-    myName = name;
-
-    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    ws = new WebSocket(`${proto}//${location.host}`);
-
-    ws.onopen = () => {
-      ws.send(JSON.stringify({ type: 'join', name }));
-    };
-
-    ws.onmessage = (e) => {
-      const data = JSON.parse(e.data);
-      handleMessage(data);
-    };
-
-    ws.onclose = () => {
-      appendSystem('Déconnecté du serveur. Recharge la page pour reconnecter.');
-    };
-
-    ws.onerror = () => {
-      appendSystem('Erreur de connexion.');
-    };
-  }
-
-  function handleMessage(data) {
-    switch (data.type) {
-      case 'welcome':
-        myColor = data.color;
-        document.getElementById('join-screen').style.display = 'none';
-        document.getElementById('app').classList.add('visible');
-        updateUsers(data.users);
-        // Load history
-        if (data.history) {
-          data.history.forEach(msg => appendMessage(msg));
-        }
-        break;
-
-      case 'message':
-        appendMessage(data);
-        break;
-
-      case 'system':
-        appendSystem(data.text);
-        break;
-
-      case 'user_joined':
-      case 'user_left':
-        updateUsers(data.users);
-        break;
-
-      case 'typing':
-        showTyping(data.name);
-        break;
-    }
-  }
-
-  function appendMessage(data) {
-    const div = document.createElement('div');
-    div.className = 'msg' + (data.name === myName ? ' msg-self' : '');
-
-    div.innerHTML = `
-      <span class="msg-time">${data.time}</span>
-      <span class="msg-name" style="color:${data.color}">${escHtml(data.name)}</span>
-      <span class="msg-text">${escHtml(data.text)}</span>
-    `;
-
-    const msgs = document.getElementById('messages');
-    msgs.appendChild(div);
-    msgs.scrollTop = msgs.scrollHeight;
-  }
-
-  function appendSystem(text) {
-    const div = document.createElement('div');
-    div.className = 'system-msg';
-    div.textContent = text;
-    const msgs = document.getElementById('messages');
-    msgs.appendChild(div);
-    msgs.scrollTop = msgs.scrollHeight;
-  }
-
-  function updateUsers(users) {
-    document.getElementById('online-count').textContent = users.length;
-    const list = document.getElementById('user-list');
-    list.innerHTML = users.map(u => `
-      <div class="user-item">
-        <div class="user-dot" style="background:${u.color}"></div>
-        <span style="color:${u.color === myColor && u.name === myName ? '#fff' : '#cbd5e1'};font-size:12px">${escHtml(u.name)}</span>
+    <!-- Kick -->
+    <div class="ap-section">
+      <div class="ap-section-title">Expulser (kick)</div>
+      <div class="ap-row">
+        <input class="ap-input" id="kick-name" placeholder="Pseudo…" autocomplete="off">
+        <input class="ap-input" id="kick-reason" placeholder="Raison (optionnel)…" style="max-width:200px" autocomplete="off">
+        <button class="ap-btn btn-warn" onclick="adminKick()">Kick</button>
       </div>
-    `).join('');
-  }
+    </div>
 
-  function showTyping(name) {
-    const area = document.getElementById('typing-area');
-    area.textContent = `${name} est en train d'écrire…`;
-    clearTimeout(typingTimeout);
-    typingTimeout = setTimeout(() => { area.textContent = ''; }, 2000);
-  }
+    <!-- Ban -->
+    <div class="ap-section">
+      <div class="ap-section-title">Bannir</div>
+      <div class="ap-row">
+        <input class="ap-input" id="ban-name" placeholder="Pseudo…" autocomplete="off">
+        <input class="ap-input" id="ban-duration" placeholder="Durée (min) — vide=définitif" type="number" style="max-width:180px" autocomplete="off">
+        <input class="ap-input" id="ban-reason" placeholder="Raison…" style="max-width:160px" autocomplete="off">
+        <button class="ap-btn btn-danger" onclick="adminBan()">Bannir</button>
+      </div>
+      <div class="ap-row">
+        <input class="ap-input" id="unban-name" placeholder="Pseudo à débannir…" autocomplete="off">
+        <button class="ap-btn btn-ok" onclick="adminUnban()">Débannir</button>
+      </div>
+    </div>
 
-  document.getElementById('msg-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') { sendMessage(); return; }
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: 'typing' }));
-    }
-  });
+    <!-- Clear -->
+    <div class="ap-section">
+      <div class="ap-section-title">Messages</div>
+      <div class="ap-row">
+        <button class="ap-btn btn-danger" onclick="adminClearAll()">🗑 Vider tout le chat</button>
+      </div>
+    </div>
 
-  function sendMessage() {
-    const input = document.getElementById('msg-input');
-    const text = input.value.trim();
-    if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
-    ws.send(JSON.stringify({ type: 'message', text }));
-    input.value = '';
-    input.focus();
-  }
+    <!-- Change password -->
+    <div class="ap-section">
+      <div class="ap-section-title">Changer le mot de passe admin</div>
+      <div class="ap-row">
+        <input class="ap-input" id="new-pass" type="password" placeholder="Nouveau mot de passe…" autocomplete="off">
+        <button class="ap-btn btn-ok" onclick="adminChangePass()">Changer</button>
+      </div>
+      <div id="ap-notice" class="ap-notice" style="display:none"></div>
+    </div>
+  </div>
+</div>
 
-  function escHtml(str) {
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+<script>
+let ws = null, myName = '', myColor = '', isAdmin = false;
+let typingTO = null;
+
+// ── Name input → detect "juju" ──
+document.getElementById('name-input').addEventListener('input', function() {
+  const wrap = document.getElementById('admin-pass-wrap');
+  if (this.value.toLowerCase() === 'juju') {
+    wrap.classList.add('visible');
+    setTimeout(() => document.getElementById('admin-pass-input').focus(), 300);
+  } else {
+    wrap.classList.remove('visible');
   }
+});
+
+document.getElementById('name-input').addEventListener('keydown', e => { if(e.key==='Enter') join(); });
+document.getElementById('admin-pass-input').addEventListener('keydown', e => { if(e.key==='Enter') join(); });
+document.getElementById('msg-input').addEventListener('keydown', e => {
+  if(e.key==='Enter') { sendMessage(); return; }
+  if(ws && ws.readyState===WebSocket.OPEN) ws.send(JSON.stringify({type:'typing'}));
+});
+
+function join() {
+  const name = document.getElementById('name-input').value.trim();
+  if (!name) { document.getElementById('name-input').focus(); return; }
+  const pass = document.getElementById('admin-pass-input').value;
+  const tryAdmin = name.toLowerCase() === 'juju';
+
+  const proto = location.protocol==='https:'?'wss:':'ws:';
+  ws = new WebSocket(`${proto}//${location.host}`);
+
+  ws.onopen = () => {
+    ws.send(JSON.stringify({ type:'join', name, isAdmin: tryAdmin, password: pass }));
+  };
+  ws.onmessage = e => handle(JSON.parse(e.data));
+  ws.onclose = () => appendSystem('Déconnecté — recharge la page');
+  ws.onerror = () => appendSystem('Erreur de connexion');
+}
+
+function handle(d) {
+  switch(d.type) {
+    case 'welcome':
+      myColor = d.color; isAdmin = d.isAdmin; myName = document.getElementById('name-input').value.trim();
+      document.getElementById('join-screen').style.display = 'none';
+      document.getElementById('app').classList.add('visible');
+      if (isAdmin) {
+        document.getElementById('admin-badge').style.display = '';
+        document.getElementById('admin-panel-btn').style.display = '';
+      }
+      updateUsers(d.users);
+      (d.history||[]).forEach(m => m.type==='message' ? appendMsg(m) : appendSystem(m.text));
+      break;
+
+    case 'message': appendMsg(d); break;
+    case 'system': appendSystem(d.text); break;
+    case 'user_joined': case 'user_left': updateUsers(d.users); break;
+    case 'typing': showTyping(d.name); break;
+
+    case 'delete_msg':
+      document.querySelectorAll(`.msg[data-id="${d.msgId}"]`).forEach(el => {
+        el.style.transition='opacity .3s,transform .3s';
+        el.style.opacity='0';el.style.transform='translateX(-10px)';
+        setTimeout(()=>el.remove(),300);
+      });
+      break;
+
+    case 'clear_all':
+      const msgs = document.getElementById('messages');
+      msgs.style.transition='opacity .4s';msgs.style.opacity='0';
+      setTimeout(()=>{msgs.innerHTML='';msgs.style.opacity='1';},400);
+      break;
+
+    case 'banned':
+      document.getElementById('banned-reason').textContent = d.reason ? `Raison : ${d.reason}` : '';
+      document.getElementById('banned-until').textContent = `Jusqu'au : ${d.until}`;
+      document.getElementById('banned-screen').classList.add('show');
+      document.getElementById('app').style.display='none';
+      document.getElementById('join-screen').style.display='none';
+      break;
+
+    case 'kicked':
+      document.getElementById('kicked-reason').textContent = d.reason ? `Raison : ${d.reason}` : '';
+      document.getElementById('kicked-screen').classList.add('show');
+      document.getElementById('app').style.display='none';
+      break;
+
+    case 'admin_notice':
+      showAPNotice(d.text);
+      break;
+  }
+}
+
+function appendMsg(d) {
+  const div = document.createElement('div');
+  div.className = 'msg';
+  div.dataset.id = d.id;
+  const nameClass = d.isAdmin ? 'msg-name admin-name' : 'msg-name';
+  const delBtn = isAdmin ? `<button class="msg-del" onclick="adminDeleteMsg(${d.id})" title="Supprimer">✕</button>` : '';
+  div.innerHTML = `
+    <span class="msg-time">${d.time}</span>
+    <span class="${nameClass}" style="color:${d.color}">${esc(d.name)}</span>
+    <span class="msg-text">${esc(d.text)}</span>
+    ${delBtn}
+  `;
+  const msgs = document.getElementById('messages');
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function appendSystem(text) {
+  const div = document.createElement('div');
+  div.className = 'system-msg';
+  div.innerHTML = `<span>${esc(text)}</span>`;
+  const msgs = document.getElementById('messages');
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function updateUsers(users) {
+  document.getElementById('online-count').textContent = users.length;
+  document.getElementById('sb-count').textContent = users.length;
+  document.getElementById('user-list').innerHTML = users.map(u => `
+    <div class="user-item">
+      <div class="user-bullet" style="background:${u.color}"></div>
+      <span style="color:${u.color}">${esc(u.name)}</span>
+      ${u.isAdmin ? '<span class="user-crown">👑</span>' : ''}
+    </div>
+  `).join('');
+  // Update admin panel list too
+  document.getElementById('ap-user-list').innerHTML = users.map(u => `
+    <div class="ap-user-row">
+      <div class="ap-user-dot" style="background:${u.color}"></div>
+      <span class="ap-user-name" style="color:${u.color}">${esc(u.name)}${u.isAdmin?' 👑':''}</span>
+      ${isAdmin && u.name !== myName ? `
+        <button class="ap-btn btn-warn" style="padding:5px 10px;font-size:10px" onclick="quickKick('${esc(u.name)}')">Kick</button>
+        <button class="ap-btn btn-danger" style="padding:5px 10px;font-size:10px" onclick="quickBan('${esc(u.name)}')">Ban</button>
+      ` : ''}
+    </div>
+  `).join('');
+}
+
+function showTyping(name) {
+  const a = document.getElementById('typing-area');
+  a.innerHTML = `<span style="color:var(--accent2)">${esc(name)}</span>&nbsp;écrit <div class="typing-dots"><span></span><span></span><span></span></div>`;
+  clearTimeout(typingTO);
+  typingTO = setTimeout(() => { a.innerHTML = ''; }, 2500);
+}
+
+function sendMessage() {
+  const input = document.getElementById('msg-input');
+  const text = input.value.trim();
+  if (!text || !ws || ws.readyState!==WebSocket.OPEN) return;
+  ws.send(JSON.stringify({type:'message',text}));
+  input.value='';input.focus();
+}
+
+// ── Admin ──
+function toggleAdminPanel() {
+  document.getElementById('admin-panel').classList.toggle('show');
+}
+
+function adminCmd(obj) {
+  if (ws && ws.readyState===WebSocket.OPEN)
+    ws.send(JSON.stringify({type:'admin_cmd',...obj}));
+}
+
+function adminDeleteMsg(id) { adminCmd({cmd:'delete_msg',msgId:id}); }
+function adminKick() {
+  const n = document.getElementById('kick-name').value.trim();
+  const r = document.getElementById('kick-reason').value.trim();
+  if (!n) return;
+  adminCmd({cmd:'kick',target:n,reason:r});
+  document.getElementById('kick-name').value='';
+  document.getElementById('kick-reason').value='';
+}
+function adminBan() {
+  const n = document.getElementById('ban-name').value.trim();
+  const d = parseInt(document.getElementById('ban-duration').value)||0;
+  const r = document.getElementById('ban-reason').value.trim();
+  if (!n) return;
+  adminCmd({cmd:'ban',target:n,duration:d||null,reason:r});
+  document.getElementById('ban-name').value='';
+  document.getElementById('ban-duration').value='';
+  document.getElementById('ban-reason').value='';
+}
+function adminUnban() {
+  const n = document.getElementById('unban-name').value.trim();
+  if (!n) return;
+  adminCmd({cmd:'unban',target:n});
+  document.getElementById('unban-name').value='';
+}
+function adminClearAll() {
+  if (confirm('Vider tout le chat ?')) adminCmd({cmd:'clear_all'});
+}
+function adminChangePass() {
+  const p = document.getElementById('new-pass').value.trim();
+  if (!p) return;
+  adminCmd({cmd:'change_password',newPassword:p});
+  document.getElementById('new-pass').value='';
+}
+function quickKick(name) {
+  adminCmd({cmd:'kick',target:name});
+}
+function quickBan(name) {
+  if (confirm(`Bannir définitivement ${name} ?`))
+    adminCmd({cmd:'ban',target:name,duration:null});
+}
+
+function showAPNotice(text) {
+  const n = document.getElementById('ap-notice');
+  n.textContent = text; n.style.display='block';
+  setTimeout(()=>{ n.style.display='none'; }, 4000);
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 </script>
 </body>
 </html>
