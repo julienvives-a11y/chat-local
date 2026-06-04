@@ -7,456 +7,181 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-
 :root{
-  --bg:#08090c;
-  --s1:#0f1117;
-  --s2:#161920;
-  --s3:#1e2230;
-  --border:#252a3a;
-  --border2:#2e3448;
-  --accent:#c8ff00;
-  --accent2:#00d4ff;
-  --danger:#ff3b5c;
-  --warn:#ffb800;
-  --gold:#ffd700;
-  --text:#e8ecf4;
-  --muted:#5a6480;
-  --muted2:#3d4460;
+  --bg:#08090c;--s1:#0f1117;--s2:#161920;--s3:#1e2230;
+  --border:#252a3a;--border2:#2e3448;
+  --accent:#c8ff00;--accent2:#00d4ff;
+  --danger:#ff3b5c;--warn:#ffb800;--gold:#ffd700;
+  --text:#e8ecf4;--muted:#5a6480;--muted2:#3d4460;
 }
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.4}
 
-body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;cursor:default}
-
-/* ── NOISE OVERLAY ── */
-body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.4}
-
-/* ══════════════════════════════════════
-   JOIN SCREEN
-══════════════════════════════════════ */
-#join-screen{
-  position:fixed;inset:0;
-  display:flex;align-items:center;justify-content:center;
-  background:var(--bg);
-  z-index:100;
-  flex-direction:column;
-}
-
-.join-wrap{
-  width:min(460px,90vw);
-  position:relative;
-}
-
-.join-glow{
-  position:absolute;
-  width:300px;height:300px;
-  background:radial-gradient(circle,rgba(200,255,0,0.08) 0%,transparent 70%);
-  top:-80px;left:-60px;
-  pointer-events:none;
-  animation:glowPulse 4s ease-in-out infinite;
-}
-
-@keyframes glowPulse{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.2);opacity:1}}
-
-.join-card{
-  background:var(--s1);
-  border:1px solid var(--border);
-  padding:52px 48px;
-  position:relative;
-  overflow:hidden;
-  animation:slideUp .6s cubic-bezier(.16,1,.3,1);
-}
-
-@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
-
-.join-card::after{
-  content:'';position:absolute;
-  top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,transparent,var(--accent),transparent);
-}
-
-.join-tag{
-  font-family:'DM Mono',monospace;
-  font-size:10px;letter-spacing:.25em;
-  color:var(--accent);text-transform:uppercase;
-  margin-bottom:20px;
-  display:flex;align-items:center;gap:8px;
-}
+/* JOIN */
+#join-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:100}
+.join-wrap{width:min(460px,90vw);position:relative}
+.join-glow{position:absolute;width:350px;height:350px;background:radial-gradient(circle,rgba(200,255,0,.07) 0%,transparent 70%);top:-100px;left:-80px;pointer-events:none;animation:gp 4s ease-in-out infinite}
+@keyframes gp{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.2);opacity:1}}
+.join-card{background:var(--s1);border:1px solid var(--border);padding:52px 48px;position:relative;overflow:hidden;animation:slideUp .6s cubic-bezier(.16,1,.3,1)}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}}
+.join-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+.join-tag{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.25em;color:var(--accent);text-transform:uppercase;margin-bottom:20px;display:flex;align-items:center;gap:8px}
 .join-tag span{width:20px;height:1px;background:var(--accent);display:inline-block}
-
-.join-title{
-  font-size:42px;font-weight:800;
-  letter-spacing:-.03em;
-  line-height:1;
-  margin-bottom:8px;
-}
+.join-title{font-size:42px;font-weight:800;letter-spacing:-.03em;line-height:1;margin-bottom:8px}
 .join-title em{font-style:normal;color:var(--accent)}
-
-.join-sub{font-size:13px;color:var(--muted);margin-bottom:40px;font-family:'DM Mono',monospace}
-
-.field-label{
-  font-family:'DM Mono',monospace;
-  font-size:10px;letter-spacing:.15em;color:var(--muted);
-  text-transform:uppercase;margin-bottom:10px;
-}
-
-.join-input{
-  width:100%;background:var(--bg);
-  border:1px solid var(--border2);color:var(--text);
-  font-family:'Syne',sans-serif;font-size:16px;font-weight:600;
-  padding:14px 18px;outline:none;
-  transition:border-color .2s,box-shadow .2s;
-  caret-color:var(--accent);
-}
+.join-sub{font-size:12px;color:var(--muted);margin-bottom:36px;font-family:'DM Mono',monospace}
+.field-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+.join-input{width:100%;background:var(--bg);border:1px solid var(--border2);color:var(--text);font-family:'Syne',sans-serif;font-size:16px;font-weight:600;padding:14px 18px;outline:none;transition:border-color .2s,box-shadow .2s;caret-color:var(--accent)}
 .join-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,255,0,.07)}
 .join-input::placeholder{color:var(--muted2);font-weight:400}
-
-.join-btn{
-  width:100%;margin-top:14px;
-  background:var(--accent);color:#000;
-  font-family:'Syne',sans-serif;font-weight:800;font-size:14px;
-  letter-spacing:.08em;text-transform:uppercase;
-  padding:16px;border:none;cursor:pointer;
-  transition:all .15s;position:relative;overflow:hidden;
-}
-.join-btn::before{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);
-  transform:translateX(-100%);transition:transform .4s;
-}
+.join-btn{width:100%;margin-top:14px;background:var(--accent);color:#000;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;letter-spacing:.08em;text-transform:uppercase;padding:16px;border:none;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.join-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);transform:translateX(-100%);transition:transform .4s}
 .join-btn:hover::before{transform:translateX(100%)}
 .join-btn:hover{background:#d9ff1a;transform:translateY(-1px)}
-.join-btn:active{transform:translateY(0)}
 
-/* Admin password slide-up */
-#admin-pass-wrap{
-  overflow:hidden;
-  max-height:0;
-  transition:max-height .5s cubic-bezier(.16,1,.3,1), opacity .4s;
-  opacity:0;
-  margin-top:0;
-}
+/* Admin pass slide */
+#admin-pass-wrap{overflow:hidden;max-height:0;transition:max-height .5s cubic-bezier(.16,1,.3,1),opacity .4s;opacity:0;margin-top:0}
 #admin-pass-wrap.visible{max-height:120px;opacity:1;margin-top:14px}
-
-.admin-hint{
-  font-family:'DM Mono',monospace;font-size:10px;
-  color:var(--gold);letter-spacing:.1em;
-  margin-bottom:8px;
-  display:flex;align-items:center;gap:6px;
-}
+.admin-hint{font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:.1em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .admin-hint::before{content:'👑'}
-
-.admin-input{
-  width:100%;background:rgba(255,215,0,.05);
-  border:1px solid rgba(255,215,0,.25);color:var(--gold);
-  font-family:'DM Mono',monospace;font-size:15px;
-  padding:12px 16px;outline:none;
-  caret-color:var(--gold);
-  transition:border-color .2s,box-shadow .2s;
-}
+.admin-input{width:100%;background:rgba(255,215,0,.05);border:1px solid rgba(255,215,0,.25);color:var(--gold);font-family:'DM Mono',monospace;font-size:15px;padding:12px 16px;outline:none;caret-color:var(--gold);transition:border-color .2s,box-shadow .2s}
 .admin-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(255,215,0,.08)}
 .admin-input::placeholder{color:rgba(255,215,0,.3)}
 
-/* ══════════════════════════════════════
-   BANNED / KICKED screens
-══════════════════════════════════════ */
-.overlay-screen{
-  position:fixed;inset:0;
-  background:var(--bg);
-  display:flex;align-items:center;justify-content:center;
-  z-index:200;
-  flex-direction:column;
-  gap:16px;
-  display:none;
-}
+/* OVERLAY SCREENS */
+.overlay-screen{position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:200;flex-direction:column;gap:16px}
 .overlay-screen.show{display:flex}
 .overlay-icon{font-size:64px;animation:shake .4s}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
 .overlay-title{font-size:28px;font-weight:800}
-.overlay-sub{font-size:13px;color:var(--muted);font-family:'DM Mono',monospace;text-align:center}
+.overlay-sub{font-size:13px;color:var(--muted);font-family:'DM Mono',monospace;text-align:center;max-width:320px}
 
-/* ══════════════════════════════════════
-   APP LAYOUT
-══════════════════════════════════════ */
+/* APP */
 #app{display:none;height:100vh;flex-direction:column}
 #app.visible{display:flex}
 
 /* Header */
-.hdr{
-  display:flex;align-items:center;
-  padding:0 24px;height:56px;
-  background:var(--s1);
-  border-bottom:1px solid var(--border);
-  gap:16px;flex-shrink:0;
-  position:relative;
-}
-.hdr-dot{
-  width:7px;height:7px;border-radius:50%;
-  background:var(--accent);flex-shrink:0;
-  box-shadow:0 0 8px var(--accent);
-  animation:hdrPulse 2.5s ease-in-out infinite;
-}
-@keyframes hdrPulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hdr{display:flex;align-items:center;padding:0 24px;height:56px;background:var(--s1);border-bottom:1px solid var(--border);gap:16px;flex-shrink:0}
+.hdr-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;box-shadow:0 0 8px var(--accent);animation:hp 2.5s ease-in-out infinite}
+@keyframes hp{0%,100%{opacity:1}50%{opacity:.4}}
 .hdr-name{font-size:15px;font-weight:800;letter-spacing:.03em}
 .hdr-sep{width:1px;height:20px;background:var(--border2)}
 .hdr-count{font-size:12px;color:var(--muted);font-family:'DM Mono',monospace}
 .hdr-count b{color:var(--accent2)}
 .hdr-right{margin-left:auto;display:flex;align-items:center;gap:12px}
-.admin-badge{
-  font-family:'DM Mono',monospace;font-size:10px;
-  color:var(--gold);border:1px solid rgba(255,215,0,.3);
-  padding:3px 10px;letter-spacing:.1em;
-  background:rgba(255,215,0,.05);
-}
-.hdr-settings-btn{
-  background:none;border:1px solid var(--border2);
-  color:var(--muted);cursor:pointer;
-  padding:6px 12px;font-size:11px;font-family:'DM Mono',monospace;
-  letter-spacing:.08em;transition:all .2s;
-}
-.hdr-settings-btn:hover{border-color:var(--gold);color:var(--gold)}
+.admin-badge{font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);border:1px solid rgba(255,215,0,.3);padding:3px 10px;letter-spacing:.1em;background:rgba(255,215,0,.05)}
+.hdr-btn{background:none;border:1px solid var(--border2);color:var(--muted);cursor:pointer;padding:6px 12px;font-size:11px;font-family:'DM Mono',monospace;letter-spacing:.08em;transition:all .2s}
+.hdr-btn:hover{border-color:var(--gold);color:var(--gold)}
+.sound-btn{border-color:var(--border2);color:var(--muted)}
+.sound-btn.on{border-color:var(--accent2);color:var(--accent2)}
 
 /* Main */
 .main{display:flex;flex:1;overflow:hidden}
 
 /* Sidebar */
-.sidebar{
-  width:220px;
-  background:var(--s1);
-  border-right:1px solid var(--border);
-  display:flex;flex-direction:column;
-  flex-shrink:0;
-}
-.sb-hdr{
-  padding:16px 20px;
-  font-family:'DM Mono',monospace;font-size:9px;
-  letter-spacing:.2em;color:var(--muted);text-transform:uppercase;
-  border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;
-}
+.sidebar{width:220px;background:var(--s1);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.sb-hdr{padding:16px 20px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 #user-list{flex:1;overflow-y:auto;padding:8px}
-.user-item{
-  display:flex;align-items:center;gap:10px;
-  padding:8px 12px;border-radius:2px;
-  font-size:13px;font-weight:600;
-  animation:userIn .3s ease;
-  position:relative;
-}
-@keyframes userIn{from{opacity:0;transform:translateX(-10px)}}
+.user-item{display:flex;align-items:center;gap:10px;padding:8px 12px;font-size:13px;font-weight:600;animation:ui .3s ease;border-radius:2px}
+@keyframes ui{from{opacity:0;transform:translateX(-10px)}}
 .user-item:hover{background:var(--s2)}
 .user-bullet{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .user-crown{font-size:10px;margin-left:auto}
 
 /* Chat */
 .chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
-
-#messages{
-  flex:1;overflow-y:auto;
-  padding:20px 24px;
-  display:flex;flex-direction:column;gap:2px;
-  scroll-behavior:smooth;
-}
+#messages{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:2px;scroll-behavior:smooth}
 #messages::-webkit-scrollbar{width:5px}
 #messages::-webkit-scrollbar-track{background:transparent}
 #messages::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 
-/* Message row */
-.msg{
-  display:grid;
-  grid-template-columns:44px 140px 1fr auto;
-  align-items:start;
-  padding:5px 8px;
-  border-radius:2px;
-  transition:background .15s;
-  animation:msgIn .2s ease;
-  position:relative;
-  gap:0 4px;
-}
-@keyframes msgIn{from{opacity:0;transform:translateY(5px)}}
+.msg{display:grid;grid-template-columns:44px 140px 1fr auto;align-items:start;padding:5px 8px;border-radius:2px;transition:background .15s;animation:mi .2s ease;position:relative;gap:0 4px}
+@keyframes mi{from{opacity:0;transform:translateY(5px)}}
 .msg:hover{background:var(--s2)}
 .msg:hover .msg-del{opacity:1}
+.msg-time{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted2);padding-top:3px;text-align:right}
+.msg-name{font-size:12px;font-weight:700;padding-top:2px;padding-left:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.msg-name.is-admin::after{content:' 👑';font-size:10px}
+.msg-text{font-family:'DM Mono',monospace;font-size:13px;line-height:1.65;word-break:break-word;padding-left:12px;color:rgba(232,236,244,.9)}
+.msg-del{opacity:0;background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px;padding:2px 6px;transition:opacity .15s;align-self:center}
 
-.msg-time{
-  font-family:'DM Mono',monospace;font-size:10px;
-  color:var(--muted2);padding-top:3px;
-  text-align:right;
-}
-.msg-name{
-  font-size:12px;font-weight:700;
-  padding-top:2px;padding-left:10px;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-}
-.msg-name.admin-name::after{content:' 👑';font-size:10px}
-.msg-text{
-  font-family:'DM Mono',monospace;font-size:13px;
-  line-height:1.65;word-break:break-word;
-  padding-left:12px;color:rgba(232,236,244,.9);
-}
-.msg-del{
-  opacity:0;background:none;border:none;
-  color:var(--danger);cursor:pointer;font-size:14px;
-  padding:2px 6px;transition:opacity .15s;
-  align-self:center;
-}
+.system-msg{text-align:center;font-size:11px;color:var(--muted2);padding:10px;font-family:'DM Mono',monospace;letter-spacing:.05em}
+.system-msg span{background:var(--s2);border:1px solid var(--border);padding:3px 12px}
 
-.system-msg{
-  text-align:center;font-size:11px;
-  color:var(--muted2);padding:10px;
-  font-family:'DM Mono',monospace;
-  letter-spacing:.05em;
-}
-.system-msg span{
-  background:var(--s2);
-  border:1px solid var(--border);
-  padding:3px 12px;
-}
+#typing-area{height:22px;padding:0 24px;font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;flex-shrink:0;display:flex;align-items:center;gap:6px}
+.tdots span{display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--muted);animation:db .8s ease infinite}
+.tdots span:nth-child(2){animation-delay:.15s}
+.tdots span:nth-child(3){animation-delay:.3s}
+@keyframes db{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-4px)}}
 
-/* Typing */
-#typing-area{
-  height:22px;padding:0 24px;
-  font-size:11px;color:var(--muted);
-  font-family:'DM Mono',monospace;
-  flex-shrink:0;display:flex;align-items:center;gap:6px;
-}
-.typing-dots span{
-  display:inline-block;width:4px;height:4px;
-  border-radius:50%;background:var(--muted);
-  animation:dotBounce .8s ease infinite;
-}
-.typing-dots span:nth-child(2){animation-delay:.15s}
-.typing-dots span:nth-child(3){animation-delay:.3s}
-@keyframes dotBounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-4px)}}
-
-/* Input */
-.input-area{
-  padding:16px 24px;
-  background:var(--s1);
-  border-top:1px solid var(--border);
-  display:flex;gap:10px;flex-shrink:0;
-}
-#msg-input{
-  flex:1;background:var(--bg);
-  border:1px solid var(--border2);color:var(--text);
-  font-family:'DM Mono',monospace;font-size:13px;
-  padding:13px 18px;outline:none;
-  transition:border-color .2s,box-shadow .2s;
-  caret-color:var(--accent);
-}
+.input-area{padding:16px 24px;background:var(--s1);border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0}
+#msg-input{flex:1;background:var(--bg);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:13px 18px;outline:none;transition:border-color .2s,box-shadow .2s;caret-color:var(--accent)}
 #msg-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,255,0,.05)}
 #msg-input::placeholder{color:var(--muted2)}
-
-#send-btn{
-  background:var(--accent);color:#000;
-  font-family:'Syne',sans-serif;font-weight:800;font-size:12px;
-  letter-spacing:.1em;text-transform:uppercase;
-  padding:13px 24px;border:none;cursor:pointer;
-  transition:all .15s;flex-shrink:0;
-}
+#send-btn{background:var(--accent);color:#000;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:13px 24px;border:none;cursor:pointer;transition:all .15s;flex-shrink:0}
 #send-btn:hover{background:#d9ff1a;transform:translateY(-1px)}
-#send-btn:active{transform:translateY(0)}
 
-/* ══════════════════════════════════════
-   ADMIN PANEL
-══════════════════════════════════════ */
-#admin-panel{
-  position:fixed;inset:0;
-  background:rgba(8,9,12,.85);
-  backdrop-filter:blur(8px);
-  z-index:50;
-  display:none;
-  align-items:center;
-  justify-content:center;
-}
+/* ADMIN PANEL */
+#admin-panel{position:fixed;inset:0;background:rgba(8,9,12,.85);backdrop-filter:blur(8px);z-index:50;display:none;align-items:center;justify-content:center}
 #admin-panel.show{display:flex}
-
-.ap-card{
-  background:var(--s1);
-  border:1px solid rgba(255,215,0,.2);
-  width:min(560px,92vw);
-  max-height:85vh;
-  overflow-y:auto;
-  position:relative;
-  animation:slideUp .4s cubic-bezier(.16,1,.3,1);
-}
-.ap-card::before{
-  content:'';position:absolute;
-  top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,transparent,var(--gold),transparent);
-}
-.ap-hdr{
-  padding:24px 28px 20px;
-  display:flex;align-items:center;justify-content:space-between;
-  border-bottom:1px solid var(--border);
-}
+.ap-card{background:var(--s1);border:1px solid rgba(255,215,0,.2);width:min(580px,92vw);max-height:85vh;overflow-y:auto;position:relative;animation:slideUp .4s cubic-bezier(.16,1,.3,1)}
+.ap-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.ap-hdr{padding:24px 28px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
 .ap-title{font-size:18px;font-weight:800;color:var(--gold)}
-.ap-close{
-  background:none;border:1px solid var(--border2);
-  color:var(--muted);cursor:pointer;
-  width:32px;height:32px;font-size:16px;
-  transition:all .2s;
-}
+.ap-close{background:none;border:1px solid var(--border2);color:var(--muted);cursor:pointer;width:32px;height:32px;font-size:16px;transition:all .2s}
 .ap-close:hover{border-color:var(--danger);color:var(--danger)}
-
 .ap-section{padding:20px 28px;border-bottom:1px solid var(--border)}
 .ap-section:last-child{border-bottom:none}
-.ap-section-title{
-  font-family:'DM Mono',monospace;font-size:9px;
-  letter-spacing:.2em;color:var(--muted);text-transform:uppercase;
-  margin-bottom:14px;
-}
-
+.ap-stitle{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:14px}
 .ap-row{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
-.ap-input{
-  background:var(--bg);border:1px solid var(--border2);
-  color:var(--text);font-family:'DM Mono',monospace;font-size:12px;
-  padding:9px 12px;outline:none;flex:1;min-width:100px;
-  caret-color:var(--accent);transition:border-color .2s;
-}
+.ap-input{background:var(--bg);border:1px solid var(--border2);color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:9px 12px;outline:none;flex:1;min-width:80px;caret-color:var(--accent);transition:border-color .2s}
 .ap-input:focus{border-color:var(--accent2)}
 .ap-input::placeholder{color:var(--muted2)}
-
-.ap-btn{
-  font-family:'Syne',sans-serif;font-weight:700;font-size:11px;
-  letter-spacing:.06em;text-transform:uppercase;
-  padding:9px 16px;border:none;cursor:pointer;
-  transition:all .15s;white-space:nowrap;flex-shrink:0;
-}
-.btn-danger{background:var(--danger);color:#fff}
-.btn-danger:hover{background:#ff5570}
-.btn-warn{background:var(--warn);color:#000}
-.btn-warn:hover{background:#ffc233}
-.btn-ok{background:var(--accent);color:#000}
-.btn-ok:hover{background:#d9ff1a}
-.btn-muted{background:var(--s3);color:var(--text);border:1px solid var(--border2)}
-.btn-muted:hover{border-color:var(--muted)}
-
-.ap-notice{
-  font-family:'DM Mono',monospace;font-size:11px;
-  padding:8px 12px;margin-top:8px;
-  background:rgba(0,212,255,.07);
-  border:1px solid rgba(0,212,255,.2);
-  color:var(--accent2);
-  animation:fadeIn .3s;
-}
+.ap-btn{font-family:'Syne',sans-serif;font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:9px 16px;border:none;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0}
+.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{background:#ff5570}
+.btn-warn{background:var(--warn);color:#000}.btn-warn:hover{background:#ffc233}
+.btn-ok{background:var(--accent);color:#000}.btn-ok:hover{background:#d9ff1a}
+.btn-muted{background:var(--s3);color:var(--text);border:1px solid var(--border2)}.btn-muted:hover{border-color:var(--muted)}
+.ap-notice{font-family:'DM Mono',monospace;font-size:11px;padding:8px 12px;margin-top:8px;border:1px solid;animation:fadeIn .3s;display:none}
+.ap-notice.ok{background:rgba(200,255,0,.07);border-color:rgba(200,255,0,.2);color:var(--accent)}
+.ap-notice.err{background:rgba(255,59,92,.07);border-color:rgba(255,59,92,.2);color:var(--danger)}
 @keyframes fadeIn{from{opacity:0}}
-
-/* Online users in panel */
-.ap-user-row{
-  display:flex;align-items:center;gap:10px;
-  padding:6px 0;border-bottom:1px solid var(--border);
-}
+.ap-user-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)}
 .ap-user-row:last-child{border-bottom:none}
 .ap-user-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 .ap-user-name{font-size:13px;font-weight:600;flex:1}
-
-/* Scrollbar */
 .ap-card::-webkit-scrollbar{width:5px}
 .ap-card::-webkit-scrollbar-track{background:transparent}
 .ap-card::-webkit-scrollbar-thumb{background:var(--border2)}
 
-@media(max-width:600px){
+@media(max-width:600px){.sidebar{display:none}.msg{grid-template-columns:36px 90px 1fr auto}.join-card{padding:36px 24px}}
+
+/* ── MOBILE FIX ── */
+@media(max-width:768px){
   .sidebar{display:none}
-  .msg{grid-template-columns:36px 100px 1fr auto}
-  .join-card{padding:36px 24px}
+  #app{height:100%;height:100dvh}
+  .hdr{padding:0 14px;height:50px}
+  .hdr-name{font-size:14px}
+  .main{height:calc(100dvh - 50px)}
+  .chat-area{height:100%;display:flex;flex-direction:column}
+  #messages{flex:1;min-height:0;overflow-y:auto;padding:12px 14px}
+  .input-area{padding:10px 14px;flex-shrink:0;position:sticky;bottom:0;background:var(--s1)}
+  #msg-input{font-size:16px !important;padding:12px 14px}
+  #send-btn{padding:12px 16px;font-size:11px}
+  .msg{grid-template-columns:36px 90px 1fr auto;gap:0 2px}
+  .msg-text{font-size:12px;padding-left:8px}
+  .msg-name{font-size:11px;padding-left:6px}
+  .join-card{padding:32px 22px}
+  .join-title{font-size:34px}
+  .hdr-btn{padding:5px 8px;font-size:10px}
+  .ap-card{width:96vw;max-height:90vh}
+  .ap-section{padding:16px 18px}
+}
+
+/* Fix iOS Safari keyboard pushing content */
+@supports (-webkit-touch-callout: none) {
+  #app{height:-webkit-fill-available}
+  .main{height:calc(-webkit-fill-available - 50px)}
 }
 </style>
 </head>
@@ -466,16 +191,15 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 <div id="banned-screen" class="overlay-screen">
   <div class="overlay-icon">🔨</div>
   <div class="overlay-title" style="color:var(--danger)">Banni</div>
-  <div class="overlay-sub" id="banned-reason"></div>
-  <div class="overlay-sub" id="banned-until"></div>
+  <div class="overlay-sub" id="banned-msg"></div>
 </div>
 
 <!-- KICKED -->
 <div id="kicked-screen" class="overlay-screen">
   <div class="overlay-icon">⚡</div>
   <div class="overlay-title" style="color:var(--warn)">Expulsé</div>
-  <div class="overlay-sub" id="kicked-reason"></div>
-  <div class="overlay-sub" style="margin-top:8px;color:var(--muted)">Recharge la page pour revenir</div>
+  <div class="overlay-sub" id="kicked-msg"></div>
+  <div class="overlay-sub" style="margin-top:8px;color:var(--muted2)">Recharge la page pour revenir</div>
 </div>
 
 <!-- JOIN -->
@@ -505,26 +229,22 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
     <div class="hdr-sep"></div>
     <span class="hdr-count"><b id="online-count">0</b> en ligne</span>
     <div class="hdr-right">
+      <button id="sound-toggle" class="hdr-btn sound-btn on" onclick="toggleSound()" title="Sons">🔊</button>
       <div id="admin-badge" class="admin-badge" style="display:none">👑 ADMIN</div>
-      <button id="admin-panel-btn" class="hdr-settings-btn" style="display:none" onclick="toggleAdminPanel()">⚙ Panneau admin</button>
+      <button id="admin-panel-btn" class="hdr-btn" style="display:none" onclick="toggleAdmin()">⚙ Admin</button>
     </div>
   </div>
-
   <div class="main">
     <div class="sidebar">
-      <div class="sb-hdr">
-        <span>Connectés</span>
-        <span id="sb-count">0</span>
-      </div>
+      <div class="sb-hdr"><span>Connectés</span><span id="sb-count">0</span></div>
       <div id="user-list"></div>
     </div>
-
     <div class="chat-area">
       <div id="messages"></div>
       <div id="typing-area"></div>
       <div class="input-area">
         <input id="msg-input" type="text" placeholder="Écris ton message…" maxlength="500" autocomplete="off">
-        <button id="send-btn" onclick="sendMessage()">Envoyer</button>
+        <button id="send-btn" onclick="sendMsg()">Envoyer</button>
       </div>
     </div>
   </div>
@@ -535,65 +255,115 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
   <div class="ap-card">
     <div class="ap-hdr">
       <div class="ap-title">👑 Panneau Admin</div>
-      <button class="ap-close" onclick="toggleAdminPanel()">✕</button>
+      <button class="ap-close" onclick="toggleAdmin()">✕</button>
     </div>
 
-    <!-- Online users -->
     <div class="ap-section">
-      <div class="ap-section-title">Utilisateurs en ligne</div>
-      <div id="ap-user-list"></div>
+      <div class="ap-stitle">Utilisateurs en ligne</div>
+      <div id="ap-users"></div>
     </div>
 
-    <!-- Kick -->
     <div class="ap-section">
-      <div class="ap-section-title">Expulser (kick)</div>
+      <div class="ap-stitle">⚡ Expulser (kick)</div>
       <div class="ap-row">
         <input class="ap-input" id="kick-name" placeholder="Pseudo…" autocomplete="off">
-        <input class="ap-input" id="kick-reason" placeholder="Raison (optionnel)…" style="max-width:200px" autocomplete="off">
-        <button class="ap-btn btn-warn" onclick="adminKick()">Kick</button>
+        <input class="ap-input" id="kick-reason" placeholder="Raison…" autocomplete="off">
+        <button class="ap-btn btn-warn" onclick="doKick()">Kick</button>
       </div>
     </div>
 
-    <!-- Ban -->
     <div class="ap-section">
-      <div class="ap-section-title">Bannir</div>
+      <div class="ap-stitle">🔨 Bannir</div>
       <div class="ap-row">
         <input class="ap-input" id="ban-name" placeholder="Pseudo…" autocomplete="off">
-        <input class="ap-input" id="ban-duration" placeholder="Durée (min) — vide=définitif" type="number" style="max-width:180px" autocomplete="off">
-        <input class="ap-input" id="ban-reason" placeholder="Raison…" style="max-width:160px" autocomplete="off">
-        <button class="ap-btn btn-danger" onclick="adminBan()">Bannir</button>
+        <input class="ap-input" id="ban-dur" placeholder="Durée (min) — vide=définitif" type="number" autocomplete="off">
+        <input class="ap-input" id="ban-reason" placeholder="Raison…" autocomplete="off">
+        <button class="ap-btn btn-danger" onclick="doBan()">Bannir</button>
       </div>
       <div class="ap-row">
         <input class="ap-input" id="unban-name" placeholder="Pseudo à débannir…" autocomplete="off">
-        <button class="ap-btn btn-ok" onclick="adminUnban()">Débannir</button>
+        <button class="ap-btn btn-ok" onclick="doUnban()">✅ Débannir</button>
       </div>
+      <div id="ap-notice" class="ap-notice"></div>
     </div>
 
-    <!-- Clear -->
     <div class="ap-section">
-      <div class="ap-section-title">Messages</div>
+      <div class="ap-stitle">🗑 Messages</div>
       <div class="ap-row">
-        <button class="ap-btn btn-danger" onclick="adminClearAll()">🗑 Vider tout le chat</button>
+        <button class="ap-btn btn-danger" onclick="doClear()">Vider tout le chat</button>
       </div>
     </div>
 
-    <!-- Change password -->
     <div class="ap-section">
-      <div class="ap-section-title">Changer le mot de passe admin</div>
+      <div class="ap-stitle">🔑 Mot de passe admin</div>
       <div class="ap-row">
         <input class="ap-input" id="new-pass" type="password" placeholder="Nouveau mot de passe…" autocomplete="off">
-        <button class="ap-btn btn-ok" onclick="adminChangePass()">Changer</button>
+        <button class="ap-btn btn-ok" onclick="doChangePass()">Changer</button>
       </div>
-      <div id="ap-notice" class="ap-notice" style="display:none"></div>
     </div>
   </div>
 </div>
 
 <script>
+// ── Fingerprint ──
+function getFingerprint() {
+  const c = [
+    navigator.userAgent, navigator.language,
+    screen.width+'x'+screen.height, screen.colorDepth,
+    new Date().getTimezoneOffset(),
+    navigator.hardwareConcurrency || 0,
+    navigator.platform || '',
+    (navigator.plugins || []).length,
+  ].join('|');
+  let h = 0;
+  for (let i = 0; i < c.length; i++) { h = Math.imul(31, h) + c.charCodeAt(i) | 0; }
+  return 'fp_' + Math.abs(h).toString(36);
+}
+
+// ── Audio ──
+let soundOn = true;
+const AC = window.AudioContext || window.webkitAudioContext;
+let ac = null;
+
+function getAC() {
+  if (!ac) ac = new AC();
+  return ac;
+}
+
+function playTone(freq, type, dur, vol=0.15) {
+  if (!soundOn) return;
+  try {
+    const ctx = getAC();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    o.start(); o.stop(ctx.currentTime + dur);
+  } catch(e){}
+}
+
+function sfxJoin()    { playTone(880,'sine',.12); setTimeout(()=>playTone(1100,'sine',.1),100); }
+function sfxLeave()   { playTone(440,'sine',.15); setTimeout(()=>playTone(330,'sine',.15),120); }
+function sfxMsg()     { playTone(1200,'sine',.06,.08); }
+function sfxKick()    { playTone(220,'sawtooth',.3,.1); }
+function sfxBan()     { playTone(150,'square',.4,.1); }
+function sfxMyMsg()   { playTone(1400,'sine',.05,.06); }
+
+function toggleSound() {
+  soundOn = !soundOn;
+  const btn = document.getElementById('sound-toggle');
+  btn.textContent = soundOn ? '🔊' : '🔇';
+  btn.classList.toggle('on', soundOn);
+}
+
+// ── State ──
 let ws = null, myName = '', myColor = '', isAdmin = false;
 let typingTO = null;
+const fp = getFingerprint();
 
-// ── Name input → detect "juju" ──
+// ── Name input detect "juju" ──
 document.getElementById('name-input').addEventListener('input', function() {
   const wrap = document.getElementById('admin-pass-wrap');
   if (this.value.toLowerCase() === 'juju') {
@@ -607,31 +377,29 @@ document.getElementById('name-input').addEventListener('input', function() {
 document.getElementById('name-input').addEventListener('keydown', e => { if(e.key==='Enter') join(); });
 document.getElementById('admin-pass-input').addEventListener('keydown', e => { if(e.key==='Enter') join(); });
 document.getElementById('msg-input').addEventListener('keydown', e => {
-  if(e.key==='Enter') { sendMessage(); return; }
+  if(e.key==='Enter') { sendMsg(); return; }
   if(ws && ws.readyState===WebSocket.OPEN) ws.send(JSON.stringify({type:'typing'}));
 });
 
 function join() {
   const name = document.getElementById('name-input').value.trim();
-  if (!name) { document.getElementById('name-input').focus(); return; }
+  if (!name) return;
   const pass = document.getElementById('admin-pass-input').value;
   const tryAdmin = name.toLowerCase() === 'juju';
+  myName = name;
 
   const proto = location.protocol==='https:'?'wss:':'ws:';
   ws = new WebSocket(`${proto}//${location.host}`);
-
-  ws.onopen = () => {
-    ws.send(JSON.stringify({ type:'join', name, isAdmin: tryAdmin, password: pass }));
-  };
+  ws.onopen = () => ws.send(JSON.stringify({ type:'join', name, isAdmin:tryAdmin, password:pass, fingerprint:fp }));
   ws.onmessage = e => handle(JSON.parse(e.data));
-  ws.onclose = () => appendSystem('Déconnecté — recharge la page');
-  ws.onerror = () => appendSystem('Erreur de connexion');
+  ws.onclose = () => appendSys('Déconnecté — recharge la page');
+  ws.onerror = () => appendSys('Erreur de connexion');
 }
 
 function handle(d) {
   switch(d.type) {
     case 'welcome':
-      myColor = d.color; isAdmin = d.isAdmin; myName = document.getElementById('name-input').value.trim();
+      myColor = d.color; isAdmin = d.isAdmin;
       document.getElementById('join-screen').style.display = 'none';
       document.getElementById('app').classList.add('visible');
       if (isAdmin) {
@@ -639,14 +407,22 @@ function handle(d) {
         document.getElementById('admin-panel-btn').style.display = '';
       }
       updateUsers(d.users);
-      (d.history||[]).forEach(m => m.type==='message' ? appendMsg(m) : appendSystem(m.text));
+      (d.history||[]).forEach(m => m.type==='message' ? appendMsg(m) : appendSys(m.text));
       break;
-
-    case 'message': appendMsg(d); break;
-    case 'system': appendSystem(d.text); break;
-    case 'user_joined': case 'user_left': updateUsers(d.users); break;
+    case 'message':
+      appendMsg(d);
+      if (d.name !== myName) sfxMsg(); else sfxMyMsg();
+      break;
+    case 'system': appendSys(d.text); break;
+    case 'user_joined':
+      updateUsers(d.users);
+      sfxJoin();
+      break;
+    case 'user_left':
+      updateUsers(d.users);
+      sfxLeave();
+      break;
     case 'typing': showTyping(d.name); break;
-
     case 'delete_msg':
       document.querySelectorAll(`.msg[data-id="${d.msgId}"]`).forEach(el => {
         el.style.transition='opacity .3s,transform .3s';
@@ -654,57 +430,51 @@ function handle(d) {
         setTimeout(()=>el.remove(),300);
       });
       break;
-
     case 'clear_all':
       const msgs = document.getElementById('messages');
       msgs.style.transition='opacity .4s';msgs.style.opacity='0';
       setTimeout(()=>{msgs.innerHTML='';msgs.style.opacity='1';},400);
       break;
-
     case 'banned':
-      document.getElementById('banned-reason').textContent = d.reason ? `Raison : ${d.reason}` : '';
-      document.getElementById('banned-until').textContent = `Jusqu'au : ${d.until}`;
+      document.getElementById('banned-msg').innerHTML =
+        `${d.reason ? `Raison : ${esc(d.reason)}<br>` : ''}Jusqu'au : ${esc(d.until)}`;
       document.getElementById('banned-screen').classList.add('show');
       document.getElementById('app').style.display='none';
       document.getElementById('join-screen').style.display='none';
+      sfxBan();
       break;
-
     case 'kicked':
-      document.getElementById('kicked-reason').textContent = d.reason ? `Raison : ${d.reason}` : '';
+      document.getElementById('kicked-msg').textContent = d.reason ? `Raison : ${d.reason}` : '';
       document.getElementById('kicked-screen').classList.add('show');
       document.getElementById('app').style.display='none';
+      sfxKick();
       break;
-
     case 'admin_notice':
-      showAPNotice(d.text);
+      showNotice(d.text, d.ok !== false);
       break;
   }
 }
 
 function appendMsg(d) {
   const div = document.createElement('div');
-  div.className = 'msg';
-  div.dataset.id = d.id;
-  const nameClass = d.isAdmin ? 'msg-name admin-name' : 'msg-name';
-  const delBtn = isAdmin ? `<button class="msg-del" onclick="adminDeleteMsg(${d.id})" title="Supprimer">✕</button>` : '';
+  div.className = 'msg'; div.dataset.id = d.id;
+  const del = isAdmin ? `<button class="msg-del" onclick="adminCmd({cmd:'delete_msg',msgId:${d.id}})" title="Supprimer">✕</button>` : '';
   div.innerHTML = `
     <span class="msg-time">${d.time}</span>
-    <span class="${nameClass}" style="color:${d.color}">${esc(d.name)}</span>
+    <span class="msg-name${d.isAdmin?' is-admin':''}" style="color:${d.color}">${esc(d.name)}</span>
     <span class="msg-text">${esc(d.text)}</span>
-    ${delBtn}
+    ${del}
   `;
-  const msgs = document.getElementById('messages');
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
+  const m = document.getElementById('messages');
+  m.appendChild(div); m.scrollTop = m.scrollHeight;
 }
 
-function appendSystem(text) {
+function appendSys(text) {
   const div = document.createElement('div');
   div.className = 'system-msg';
   div.innerHTML = `<span>${esc(text)}</span>`;
-  const msgs = document.getElementById('messages');
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
+  const m = document.getElementById('messages');
+  m.appendChild(div); m.scrollTop = m.scrollHeight;
 }
 
 function updateUsers(users) {
@@ -714,40 +484,31 @@ function updateUsers(users) {
     <div class="user-item">
       <div class="user-bullet" style="background:${u.color}"></div>
       <span style="color:${u.color}">${esc(u.name)}</span>
-      ${u.isAdmin ? '<span class="user-crown">👑</span>' : ''}
-    </div>
-  `).join('');
-  // Update admin panel list too
-  document.getElementById('ap-user-list').innerHTML = users.map(u => `
+      ${u.isAdmin?'<span class="user-crown">👑</span>':''}
+    </div>`).join('');
+  document.getElementById('ap-users').innerHTML = users.map(u => `
     <div class="ap-user-row">
       <div class="ap-user-dot" style="background:${u.color}"></div>
       <span class="ap-user-name" style="color:${u.color}">${esc(u.name)}${u.isAdmin?' 👑':''}</span>
       ${isAdmin && u.name !== myName ? `
-        <button class="ap-btn btn-warn" style="padding:5px 10px;font-size:10px" onclick="quickKick('${esc(u.name)}')">Kick</button>
-        <button class="ap-btn btn-danger" style="padding:5px 10px;font-size:10px" onclick="quickBan('${esc(u.name)}')">Ban</button>
-      ` : ''}
-    </div>
-  `).join('');
+        <button class="ap-btn btn-warn" style="padding:5px 10px;font-size:10px" onclick="adminCmd({cmd:'kick',target:'${esc(u.name)}'})">Kick</button>
+        <button class="ap-btn btn-danger" style="padding:5px 10px;font-size:10px" onclick="if(confirm('Bannir ${esc(u.name)} ?'))adminCmd({cmd:'ban',target:'${esc(u.name)}'})">Ban</button>
+      `:''}</div>`).join('');
 }
 
 function showTyping(name) {
   const a = document.getElementById('typing-area');
-  a.innerHTML = `<span style="color:var(--accent2)">${esc(name)}</span>&nbsp;écrit <div class="typing-dots"><span></span><span></span><span></span></div>`;
+  a.innerHTML = `<span style="color:var(--accent2)">${esc(name)}</span>&nbsp;écrit <div class="tdots"><span></span><span></span><span></span></div>`;
   clearTimeout(typingTO);
-  typingTO = setTimeout(() => { a.innerHTML = ''; }, 2500);
+  typingTO = setTimeout(()=>{a.innerHTML='';}, 2500);
 }
 
-function sendMessage() {
-  const input = document.getElementById('msg-input');
-  const text = input.value.trim();
-  if (!text || !ws || ws.readyState!==WebSocket.OPEN) return;
-  ws.send(JSON.stringify({type:'message',text}));
-  input.value='';input.focus();
-}
-
-// ── Admin ──
-function toggleAdminPanel() {
-  document.getElementById('admin-panel').classList.toggle('show');
+function sendMsg() {
+  const i = document.getElementById('msg-input');
+  const t = i.value.trim();
+  if (!t || !ws || ws.readyState!==WebSocket.OPEN) return;
+  ws.send(JSON.stringify({type:'message',text:t}));
+  i.value=''; i.focus();
 }
 
 function adminCmd(obj) {
@@ -755,57 +516,60 @@ function adminCmd(obj) {
     ws.send(JSON.stringify({type:'admin_cmd',...obj}));
 }
 
-function adminDeleteMsg(id) { adminCmd({cmd:'delete_msg',msgId:id}); }
-function adminKick() {
-  const n = document.getElementById('kick-name').value.trim();
-  const r = document.getElementById('kick-reason').value.trim();
-  if (!n) return;
-  adminCmd({cmd:'kick',target:n,reason:r});
-  document.getElementById('kick-name').value='';
-  document.getElementById('kick-reason').value='';
-}
-function adminBan() {
-  const n = document.getElementById('ban-name').value.trim();
-  const d = parseInt(document.getElementById('ban-duration').value)||0;
-  const r = document.getElementById('ban-reason').value.trim();
-  if (!n) return;
-  adminCmd({cmd:'ban',target:n,duration:d||null,reason:r});
-  document.getElementById('ban-name').value='';
-  document.getElementById('ban-duration').value='';
-  document.getElementById('ban-reason').value='';
-}
-function adminUnban() {
-  const n = document.getElementById('unban-name').value.trim();
-  if (!n) return;
-  adminCmd({cmd:'unban',target:n});
-  document.getElementById('unban-name').value='';
-}
-function adminClearAll() {
-  if (confirm('Vider tout le chat ?')) adminCmd({cmd:'clear_all'});
-}
-function adminChangePass() {
-  const p = document.getElementById('new-pass').value.trim();
-  if (!p) return;
-  adminCmd({cmd:'change_password',newPassword:p});
-  document.getElementById('new-pass').value='';
-}
-function quickKick(name) {
-  adminCmd({cmd:'kick',target:name});
-}
-function quickBan(name) {
-  if (confirm(`Bannir définitivement ${name} ?`))
-    adminCmd({cmd:'ban',target:name,duration:null});
-}
+function toggleAdmin() { document.getElementById('admin-panel').classList.toggle('show'); }
+function doKick()  { const n=v('kick-name'),r=v('kick-reason'); if(!n)return; adminCmd({cmd:'kick',target:n,reason:r}); cl('kick-name','kick-reason'); }
+function doBan()   { const n=v('ban-name'),d=parseInt(v('ban-dur'))||null,r=v('ban-reason'); if(!n)return; adminCmd({cmd:'ban',target:n,duration:d,reason:r}); cl('ban-name','ban-dur','ban-reason'); }
+function doUnban() { const n=v('unban-name'); if(!n)return; adminCmd({cmd:'unban',target:n}); cl('unban-name'); }
+function doClear() { if(confirm('Vider tout le chat ?')) adminCmd({cmd:'clear_all'}); }
+function doChangePass() { const p=v('new-pass'); if(!p)return; adminCmd({cmd:'change_password',newPassword:p}); cl('new-pass'); }
 
-function showAPNotice(text) {
+function v(id) { return document.getElementById(id).value.trim(); }
+function cl(...ids) { ids.forEach(id=>document.getElementById(id).value=''); }
+
+function showNotice(text, ok) {
   const n = document.getElementById('ap-notice');
-  n.textContent = text; n.style.display='block';
-  setTimeout(()=>{ n.style.display='none'; }, 4000);
+  n.textContent = text;
+  n.className = 'ap-notice ' + (ok ? 'ok' : 'err');
+  n.style.display = 'block';
+  setTimeout(()=>{n.style.display='none';}, 4000);
 }
 
 function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+// ── Mobile keyboard fix ──
+function fixMobileKeyboard() {
+  const input = document.getElementById('msg-input');
+  if (!input) return;
+  
+  // When virtual keyboard opens, scroll to bottom
+  input.addEventListener('focus', () => {
+    setTimeout(() => {
+      const msgs = document.getElementById('messages');
+      if (msgs) msgs.scrollTop = msgs.scrollHeight;
+      input.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 400);
+  });
+
+  // Use visualViewport API if available (best for mobile keyboards)
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      const inputArea = document.querySelector('.input-area');
+      if (!inputArea) return;
+      const offsetFromBottom = window.innerHeight - window.visualViewport.height;
+      inputArea.style.transform = offsetFromBottom > 50 
+        ? `translateY(-${offsetFromBottom}px)` 
+        : '';
+      const msgs = document.getElementById('messages');
+      if (msgs) msgs.scrollTop = msgs.scrollHeight;
+    });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', fixMobileKeyboard);
+
 </script>
 </body>
 </html>
+<!-- MOBILE FIX PATCH - injected -->
