@@ -7,30 +7,27 @@ const os = require('os');
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '15mb' }));
 
 // ── Admin accounts ──
 const ADMINS = {
-  'juju':  { password: 'jv',                  role: 'owner' },
-  'jerry': { password: 'qwertyazerty123321',   role: 'coowner' }
+  'juju':  { password: 'jv',                role: 'owner' },
+  'jerry': { password: 'qwertyazerty123321', role: 'coowner' }
 };
-// Owner can do everything. Co-owner can kick, delete_msg, clear_all, change own password — but NOT ban/unban.
 
-// ── State ──
-let ownerPassword  = ADMINS.juju.password;
-let coOwnerPassword = ADMINS.coowner ? ADMINS.coowner.password : ADMINS.jerry.password;
+const bannedFingerprints = new Map();
+const nameToPrint = new Map();
+const users = new Map(); // ws -> { name, color, role, fingerprint, ghost: bool, ghostTimer }
+// ghost = user closed tab but still "online" for 15 min
 
-const bannedFingerprints = new Map(); // fp -> { reason, until, bannedBy }
-const nameToPrint = new Map();        // name_lower -> fp
-const users = new Map();              // ws -> { name, color, role, fingerprint }
 const COLORS = ['#FF6B6B','#4ECDC4','#45B7D1','#FFA07A','#DDA0DD','#98D8C8','#F7DC6F','#BB8FCE','#87CEEB','#90EE90'];
 let colorIndex = 0;
 let msgId = 0;
-const messageHistory = []; // max 200
+const messageHistory = [];
+const GHOST_TIMEOUT = 15 * 60 * 1000; // 15 minutes
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
-// ── Helpers ──
 function broadcast(data, exclude = null) {
   const m = JSON.stringify(data);
   wss.clients.forEach(c => { if (c !== exclude && c.readyState === WebSocket.OPEN) c.send(m); });
@@ -40,7 +37,12 @@ function broadcastAll(data) {
   wss.clients.forEach(c => { if (c.readyState === WebSocket.OPEN) c.send(m); });
 }
 function getUserList() {
-  return [...users.values()].map(u => ({ name: u.name, color: u.color, role: u.role }));
+  // Include ghost users
+  const live = [...users.values()].map(u => ({ name: u.name, color: u.color, role: u.role, ghost: u.ghost || false }));
+  ghostUsers.forEach(g => {
+    if (!live.find(u => u.name === g.name)) live.push({ name: g.name, color: g.color, role: g.role, ghost: true });
+  });
+  return live;
 }
 function serializeMsg(m) {
   const reactions = {};
@@ -64,10 +66,31 @@ function checkBan(fingerprint, name) {
   }
   return null;
 }
-function canBan(role) { return role === 'owner'; }
 function isStaff(role) { return role === 'owner' || role === 'coowner'; }
 
-// ── WebSocket ──
+// ── Ghost users (disconnected but still "online") ──
+// Map: name -> { name, color, role, fingerprint, timer }
+const ghostUsers = new Map();
+
+function addGhost(user) {
+  // Cancel existing ghost timer for this name
+  const existing = ghostUsers.get(user.name);
+  if (existing) clearTimeout(existing.timer);
+  const timer = setTimeout(() => {
+    ghostUsers.delete(user.name);
+    broadcastAll({ type: 'user_left', name: user.name, users: getUserList() });
+    broadcastAll({ type: 'system', text: `${user.name} a quitté 👋` });
+  }, GHOST_TIMEOUT);
+  ghostUsers.set(user.name, { ...user, timer });
+  // Notify everyone user is now ghost (still online but inactive)
+  broadcastAll({ type: 'user_ghost', name: user.name, users: getUserList() });
+}
+
+function removeGhost(name) {
+  const g = ghostUsers.get(name);
+  if (g) { clearTimeout(g.timer); ghostUsers.delete(name); }
+}
+
 wss.on('connection', (ws) => {
   ws.on('message', (raw) => {
     try {
@@ -78,11 +101,12 @@ wss.on('connection', (ws) => {
         const name = (data.name || 'Anonyme').slice(0, 20).trim();
         const fp   = (data.fingerprint || 'unknown').slice(0, 200);
 
-        // Determine role
+        // Admin check
         let role = 'user';
         const adminEntry = ADMINS[name.toLowerCase()];
-        if (adminEntry && data.password === adminEntry.password) {
-          role = adminEntry.role;
+        if (adminEntry) {
+          if (data.password === adminEntry.password) role = adminEntry.role;
+          else { ws.send(JSON.stringify({ type: 'wrong_password', role: adminEntry.role })); ws.close(); return; }
         }
 
         nameToPrint.set(name.toLowerCase(), fp);
@@ -90,8 +114,7 @@ wss.on('connection', (ws) => {
         // Ban check
         const ban = checkBan(fp, name);
         if (ban) {
-          const until = ban.until ? new Date(ban.until).toLocaleString('fr-FR') : 'définitivement';
-          ws.send(JSON.stringify({ type: 'banned', reason: ban.reason || '', until }));
+          ws.send(JSON.stringify({ type: 'banned', reason: ban.reason || '', until: ban.until ? new Date(ban.until).toLocaleString('fr-FR') : 'définitivement' }));
           ws.close(); return;
         }
         const fp2 = nameToPrint.get(name.toLowerCase());
@@ -99,6 +122,9 @@ wss.on('connection', (ws) => {
           ws.send(JSON.stringify({ type: 'banned', reason: 'Ce pseudo est banni', until: 'indéfini' }));
           ws.close(); return;
         }
+
+        // If reconnecting as ghost, restore
+        removeGhost(name);
 
         const color = role === 'owner' ? '#FFD700' : role === 'coowner' ? '#00d4ff' : COLORS[colorIndex++ % COLORS.length];
         users.set(ws, { name, color, role, fingerprint: fp });
@@ -109,7 +135,7 @@ wss.on('connection', (ws) => {
         broadcastAll({ type: 'system', text: `${name} a rejoint${tag}` });
       }
 
-      // MESSAGE (text)
+      // MESSAGE
       else if (data.type === 'message') {
         const user = users.get(ws); if (!user) return;
         const text = (data.text || '').slice(0, 500).trim(); if (!text) return;
@@ -132,11 +158,21 @@ wss.on('connection', (ws) => {
         const user = users.get(ws); if (!user) return;
         const { dataUrl, fileName } = data;
         if (!dataUrl || !dataUrl.startsWith('data:image/')) return;
-        if (dataUrl.length > 4 * 1024 * 1024) { // ~3MB limit
-          ws.send(JSON.stringify({ type: 'error', text: 'Image trop lourde (max ~3MB)' })); return;
-        }
+        if (dataUrl.length > 5 * 1024 * 1024) { ws.send(JSON.stringify({ type: 'error', text: 'Image trop lourde (max ~4MB)' })); return; }
         const id = ++msgId;
         const msg = { type: 'image', id, name: user.name, color: user.color, role: user.role, dataUrl, fileName: fileName || 'image', time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }), reactions: {} };
+        messageHistory.push(msg); if (messageHistory.length > 200) messageHistory.shift();
+        broadcastAll(serializeMsg(msg));
+      }
+
+      // VOICE MESSAGE
+      else if (data.type === 'voice') {
+        const user = users.get(ws); if (!user) return;
+        const { audioData, duration } = data;
+        if (!audioData) return;
+        if (audioData.length > 10 * 1024 * 1024) { ws.send(JSON.stringify({ type: 'error', text: 'Message vocal trop long' })); return; }
+        const id = ++msgId;
+        const msg = { type: 'voice', id, name: user.name, color: user.color, role: user.role, audioData, duration: duration || 0, time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }), reactions: {} };
         messageHistory.push(msg); if (messageHistory.length > 200) messageHistory.shift();
         broadcastAll(serializeMsg(msg));
       }
@@ -161,7 +197,7 @@ wss.on('connection', (ws) => {
         broadcastAll({ type: 'reaction_update', msgId: mId, reactions });
       }
 
-      // ADMIN COMMANDS
+      // ADMIN
       else if (data.type === 'admin_cmd') {
         const user = users.get(ws); if (!user || !isStaff(user.role)) return;
         const { cmd, target, duration, reason, msgId: mId, newPassword } = data;
@@ -172,19 +208,22 @@ wss.on('connection', (ws) => {
           broadcastAll({ type: 'delete_msg', msgId: mId });
         }
         else if (cmd === 'kick') {
-          if (target.toLowerCase() === user.name.toLowerCase()) { ws.send(JSON.stringify({ type: 'admin_notice', text: '❌ Tu ne peux pas te kick toi-même', ok: false })); return; }
+          if (target.toLowerCase() === user.name.toLowerCase()) { ws.send(JSON.stringify({ type: 'admin_notice', text: '❌ Tu ne peux pas te kick', ok: false })); return; }
           for (const [tws, tu] of users.entries()) {
             if (tu.name.toLowerCase() === target.toLowerCase()) {
-              // Coowner can't kick owner
               if (user.role === 'coowner' && tu.role === 'owner') { ws.send(JSON.stringify({ type: 'admin_notice', text: '❌ Tu ne peux pas kick le Owner', ok: false })); return; }
               tws.send(JSON.stringify({ type: 'kicked', reason: reason || '' })); tws.close();
-              broadcastAll({ type: 'system', text: `⚡ ${target} a été expulsé par ${user.name}` }); break;
+              broadcastAll({ type: 'system', text: `⚡ ${target} expulsé par ${user.name}` }); break;
             }
           }
         }
         else if (cmd === 'ban') {
-          if (!canBan(user.role)) { ws.send(JSON.stringify({ type: 'admin_notice', text: '❌ Seul le Owner peut bannir', ok: false })); return; }
+          // Both owner and coowner can ban now
           if (target.toLowerCase() === user.name.toLowerCase()) { ws.send(JSON.stringify({ type: 'admin_notice', text: '❌ Tu ne peux pas te bannir', ok: false })); return; }
+          if (user.role === 'coowner') {
+            // Coowner can't ban owner
+            for (const [, tu] of users.entries()) if (tu.name.toLowerCase() === target.toLowerCase() && tu.role === 'owner') { ws.send(JSON.stringify({ type: 'admin_notice', text: '❌ Tu ne peux pas bannir le Owner', ok: false })); return; }
+          }
           const until = duration ? Date.now() + duration * 60000 : null;
           const banData = { reason: reason || '', until, bannedBy: user.name };
           let targetFP = null;
@@ -203,7 +242,6 @@ wss.on('connection', (ws) => {
           ws.send(JSON.stringify({ type: 'admin_notice', text: `✅ ${target} banni${durStr}`, ok: true }));
         }
         else if (cmd === 'unban') {
-          if (!canBan(user.role)) { ws.send(JSON.stringify({ type: 'admin_notice', text: '❌ Seul le Owner peut débannir', ok: false })); return; }
           const fp = nameToPrint.get(target.toLowerCase());
           if (fp && bannedFingerprints.has(fp)) {
             bannedFingerprints.delete(fp); nameToPrint.delete(target.toLowerCase());
@@ -215,7 +253,6 @@ wss.on('connection', (ws) => {
           messageHistory.length = 0; broadcastAll({ type: 'clear_all' });
         }
         else if (cmd === 'change_password') {
-          // Only owner can change passwords
           if (user.role !== 'owner') { ws.send(JSON.stringify({ type: 'admin_notice', text: '❌ Seul le Owner peut changer les mots de passe', ok: false })); return; }
           if (newPassword && newPassword.length >= 2) {
             ADMINS[data.target_admin || 'juju'].password = newPassword;
@@ -229,7 +266,11 @@ wss.on('connection', (ws) => {
 
   ws.on('close', () => {
     const user = users.get(ws);
-    if (user) { users.delete(ws); broadcastAll({ type: 'system', text: `${user.name} a quitté 👋` }); broadcast({ type: 'user_left', name: user.name, users: getUserList() }); }
+    if (user) {
+      users.delete(ws);
+      // Don't remove from user list yet — ghost for 15 min
+      addGhost(user);
+    }
   });
 });
 
